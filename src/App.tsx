@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import { wordLibrary } from "./assets/assets";
-
-import { FaArrowsRotate } from "react-icons/fa6";
-
 import Keyboard from "./components/main/Keyboard";
 import HangmanWord from "./components/main/HangmanWord";
 import HangmanDrawing from "./components/main/HangmanDrawing";
 import Loss from "./components/result/Loss";
 import Win from "./components/result/Win";
 import ThemeToggle from "./utils/ThemeToggle";
+import { FaArrowsRotate } from "react-icons/fa6";
 
 const App = () => {
   interface GuessWord {
@@ -16,42 +13,76 @@ const App = () => {
     desc: string;
   }
 
-  const getRandomWord = (): GuessWord => {
-    return wordLibrary[Math.floor(Math.random() * wordLibrary.length)];
+  // Fetch random word + definition
+  const fetchGameWord = async (): Promise<GuessWord> => {
+    try {
+      const res = await fetch("https://random-word-api.herokuapp.com/word");
+      const data = await res.json();
+      const word = data[0];
+      console.log(word);
+
+      const defRes = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+      );
+      const defData = await defRes.json();
+
+      const definition =
+        defData[0]?.meanings?.[0]?.definitions?.[0]?.definition ||
+        "No definition found.";
+
+      return { word, desc: definition };
+    } catch (err) {
+      console.error("Error fetching word:", err);
+      return { word: "error", desc: "Could not fetch word." };
+    }
   };
 
-  const [wordToGuess, setWordToGuess] = useState<GuessWord>(getRandomWord);
+  // Load initial word
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const data = await fetchGameWord();
+      setWordToGuess(data);
+      setLoading(false);
+    })();
+  }, []);
+
+  const [wordToGuess, setWordToGuess] = useState<GuessWord | null>(null);
   const [guessedLetter, setGuessedLetter] = useState<string[]>([]);
   const [incorrectLetters, setIncorrectLetters] = useState<string[]>([]);
   const [isWinner, setIsWinner] = useState(false);
   const [isLoser, setIsLoser] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const restart = (): GuessWord => {
-    const fresh = getRandomWord();
+  // Restart game
+  const restart = async () => {
+    setLoading(true);
+    const fresh = await fetchGameWord();
     setWordToGuess(fresh);
     setGuessedLetter([]);
     setIncorrectLetters([]);
     setIsWinner(false);
     setIsLoser(false);
-    return fresh;
+    setLoading(false);
   };
 
+  // Handle guesses
   const handleLetterClick = (letter: string) => {
-    // prevent input when game over
-    if (isWinner || isLoser) return;
+    if (isWinner || isLoser || !wordToGuess) return;
 
     if (!guessedLetter.includes(letter)) {
       setGuessedLetter((prev) => [...prev, letter]);
 
-      // update incorrect if not in the word
       if (!wordToGuess.word.includes(letter)) {
         setIncorrectLetters((prev) => [...prev, letter]);
       }
     }
   };
 
-  // compute win/lose whenever letters or word changes
+  // Win/Loss check
   useEffect(() => {
+    if (!wordToGuess) return;
+
     const won = wordToGuess.word
       .split("")
       .every((ch) => guessedLetter.includes(ch));
@@ -61,9 +92,18 @@ const App = () => {
     setIsLoser(lost);
   }, [guessedLetter, incorrectLetters, wordToGuess]);
 
+  // Loading state
+  if (loading || !wordToGuess) {
+    return (
+      <div className="flex-center w-full h-screen text-xl text-slate-600 dark:text-slate-300">
+        Loading word...
+      </div>
+    );
+  }
+
   return (
     <>
-      {isLoser && <Loss restart={restart} word={wordToGuess.word} />}
+      {isLoser && <Loss restart={restart} word={wordToGuess} />}
       {isWinner && <Win restart={restart} />}
 
       <div className="w-full sm:max-w-4xl mx-auto flex-center flex-col gap-y-4">
@@ -82,7 +122,7 @@ const App = () => {
             <ThemeToggle />
           </div>
         </header>
-        <div className="hangman mt-3">
+        <div className="hangman">
           <HangmanDrawing noOfGuesses={incorrectLetters.length} />
         </div>
         <div className="keyboard w-full">

@@ -28,7 +28,7 @@ const HangmanWord = ({ word, guessedLetter }: HangmanWordProps) => {
           </span>
         ))}
       </div>
-      <div className="hint w-full sm:w-4/5 mx-auto p-2 text-center text-lg font-medium my-2 sm:my-4 border-y sm:border border-slate-200 bg-blue-50 dark:bg-slate-400 dark:border-slate-800 dark:text-slate-950 sm:rounded">
+      <div className="hint w-full sm:w-11/12 mx-auto p-2 text-center text-lg font-medium my-2 sm:my-3 border-y sm:border border-slate-200 bg-blue-50 dark:bg-slate-400 dark:border-slate-800 dark:text-slate-950 sm:rounded">
         {guessingWord.desc}
       </div>
     </div>

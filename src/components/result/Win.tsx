@@ -3,13 +3,8 @@ import Lottie from "lottie-react";
 import Trophy from "../../assets/Json/Trophy.json";
 import Confetti from "../../assets/Json/Confetti.json";
 
-interface GuessWord {
-  word: string;
-  desc: string;
-}
-
 interface WinProps {
-  restart: () => GuessWord;
+  restart: () => void;
 }
 
 const Win = ({ restart }: WinProps) => {
@@ -24,7 +19,7 @@ const Win = ({ restart }: WinProps) => {
         </div>
         <div className=" relative desc flex-center flex-col">
           <span className="text-lx sm:text-3xl font-medium sm:mb-2 uppercase">
-            {randomMessage}
+            Hurray! {randomMessage}
           </span>
           <div className="absolute -bottom-16 w-full">
             <Lottie animationData={Confetti} />

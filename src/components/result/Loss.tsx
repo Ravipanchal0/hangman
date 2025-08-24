@@ -4,12 +4,12 @@ import Game_lost from "../../assets/Json/sad_emotion.json";
 
 interface GuessWord {
   word: string;
-  desc: string;
+  desc: string | null;
 }
 
 interface WinProps {
-  restart: () => GuessWord;
-  word: string;
+  restart: () => void;
+  word: GuessWord;
 }
 
 const Loss = ({ restart, word }: WinProps) => {
@@ -26,12 +26,15 @@ const Loss = ({ restart, word }: WinProps) => {
           <span className="text-lx sm:text-3xl font-medium sm:mb-2 uppercase">
             {randomLoseMessage}
           </span>
-          <p className="sm:text-lg mt-2 font-medium">
-            The word was "
-            <span className="capitalize italic text-blue-700 px-0.5">
-              {word}
-            </span>
-            "
+          <p className="sm:text-lg mt-2 font-medium flex items-center flex-col">
+            <span className="meaning text-xs">{word.desc}</span>
+            <div className="word">
+              The word was "
+              <span className="capitalize italic text-blue-700 px-0.5">
+                {word.word}
+              </span>
+              "
+            </div>
           </p>
         </div>
         <div onClick={restart} className="btn mt-4 sm:mt-8 z-10">
